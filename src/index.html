@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donuts</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import {
+        useState,
+        createElement,
+        Suspense,
+        Fragment,
+        useEffect,
+      } from "https://esm.sh/react@^18.0.0/react.development.js";
+      import { createRoot } from "https://esm.sh/react-dom@^18.0.0/client.development";
+      import { createFetchStore } from "https://unpkg.com/react-suspense-fetch@^0.4.1/dist/index.modern.js";
+
+      import htm from "https://unpkg.com/htm?module";
+      const html = htm.bind(createElement);
+
+      const donutStateStore = createFetchStore(async (name) => {
+        const res = await fetch(`/donut/${name}`);
+        return res.json();
+      });
+
+      function Donut({ name }) {
+        const [sending, setSending] = useState(false);
+        const donut = donutStateStore.get(name);
+
+        useEffect(() => {
+          if (!sending) {
+            return;
+          }
+
+          const ac = new AbortController();
+          fetch(`/donut/${name}/send`, {
+            method: "post",
+            body: JSON.stringify(sending),
+            signal: ac.signal,
+          }).then(() => {
+            setSending(false);
+            donutStateStore.evict(name);
+          });
+
+          return () => ac.abort();
+        }, [sending]);
+
+        return html`
+          <h2>${name} donut</h2>
+          <p>State: ${JSON.stringify(donut.state.value)}</p>
+          <p>Send event</p>
+          <p>
+            ${donut.nextEvents.map(
+              (event) =>
+                html`<button
+                  type="button"
+                  key=${event}
+                  onClick=${() => setSending({ type: event })}
+                >
+                  ${event}
+                </button>`
+            )}
+          </p>
+        `;
+      }
+
+      const DONUT_NAMES = ["chocolate", "vanilla", "strawberry"];
+
+      function App() {
+        const [count, setCount] = useState(0);
+
+        return html`<ul>
+          ${DONUT_NAMES.map(
+            (name) =>
+              html`<li key=${name}>
+              <${Suspense} fallback=${html`<p>loading...</p>`}>
+              <${Donut} name=${name} />
+              <hr />
+              </${Suspense}>
+            </li>`
+          )}
+        </ul>`;
+      }
+
+      createRoot(document.getElementById("root")).render(html`<${App} />`);
+    </script>
+  </body>
+</html>

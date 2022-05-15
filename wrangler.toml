@@ -1,0 +1,22 @@
+name = "xstate-cloudflare-workers"
+compatibility_date = "2022-05-13"
+
+[durable_objects]
+bindings = [
+  { name = "donuts", class_name = "Donut" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["Donut"]
+
+[build]
+command = "npm run build"
+
+[build.upload]
+format = "modules"
+dir = "dist"
+main = "./index.mjs"
+
+[miniflare]
+durable_objects_persist = true
