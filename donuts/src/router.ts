@@ -16,13 +16,13 @@ interface Route<Env = any, Params = any> {
 }
 
 export const router =
-  (...routes: Route[]) =>
+  (firstRoute: Route, ...routes: Route[]) =>
   (
     request: Request,
     env: unknown,
     ctx: ExecutionContext
   ): Response | Promise<Response> => {
-    for (const route of routes) {
+    for (const route of [firstRoute, ...routes]) {
       if (request.method === route.method) {
         const patternResult = route.pattern.exec(request.url);
         if (patternResult) {
