@@ -9,8 +9,6 @@
     "build": "node build.js"
   },
   "dependencies": {
-    "htm": "^3.1.1",
-    "preact": "^10.7.2",
     "xstate": "^4.32.1"
   },
   "devDependencies": {
