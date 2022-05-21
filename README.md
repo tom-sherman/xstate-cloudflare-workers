@@ -9,3 +9,7 @@ A collection of example showing how to use and deploy XState in a Cloudflare Wor
 ### [Donuts](/donuts/)
 
 A simple state machine deployed into a Durable Object. Uses only pure transitions and is implemented using `machine.transition(event)`.
+
+### More coming soon...
+
+Still Todo: async, actors, multiple workers, type safety across workers...
