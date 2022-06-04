@@ -1,0 +1,15 @@
+name = "xstate-cloudflare-workers"
+main = "dist/index.mjs"
+compatibility_date = "2022-05-13"
+
+[durable_objects]
+bindings = [
+  { name = "counters", class_name = "Counter" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["Counter"]
+
+[build]
+command = "npm run build"

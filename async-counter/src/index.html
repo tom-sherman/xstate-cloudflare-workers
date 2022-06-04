@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Async Counters</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import {
+        useState,
+        createElement,
+        Suspense,
+        Fragment,
+        useEffect,
+      } from "https://esm.sh/react@^18.0.0/react.development.js";
+      import { createRoot } from "https://esm.sh/react-dom@^18.0.0/client.development";
+      import { createFetchStore } from "https://unpkg.com/react-suspense-fetch@^0.4.1/dist/index.modern.js";
+
+      import htm from "https://unpkg.com/htm?module";
+      const html = htm.bind(createElement);
+
+      const counterStore = createFetchStore((name) =>
+        fetch(`/counter/${name}`).then((res) => res.json())
+      );
+
+      function Counter({ name }) {
+        const [sending, setSending] = useState(false);
+        const counter = counterStore.get(name);
+
+        console.log(counter);
+
+        useEffect(() => {
+          if (!sending) {
+            return;
+          }
+
+          // We are purposefully not aborting the fetch here to demonstrate that the machine correctly
+          // queues concurrent events.
+          fetch(`/counter/${name}/send`, {
+            method: "post",
+            body: JSON.stringify(sending),
+          }).then(() => {
+            setSending(false);
+            counterStore.evict(name);
+          });
+        }, [sending]);
+
+        return html`
+          <h2>${name} counter ${sending ? "(sending...)" : null}</h2>
+          <p>State: ${JSON.stringify(counter.state.value)}</p>
+          <p>Context: ${JSON.stringify(counter.state.context)}</p>
+          <p>Send event</p>
+          <p>
+            ${counter.nextEvents.map(
+              (event) =>
+                html`<button
+                  type="button"
+                  key=${event}
+                  onClick=${() => setSending({ type: event })}
+                >
+                  ${event}
+                </button>`
+            )}
+          </p>
+        `;
+      }
+
+      const COUNTER_NAMES = ["a", "b", "c"];
+
+      function App() {
+        return html` <h1>Async Counters</h1>
+          <p>
+            Try spamming the "COUNT" event to see that the counter machine is
+            correctly queuing concurrent events.
+          </p>
+          <ul>
+            ${COUNTER_NAMES.map(
+              (name) =>
+                html`<li key=${name}>
+              <${Suspense} fallback=${html`<p>loading...</p>`}>
+                <${Counter} name=${name} />
+                <hr />
+              </${Suspense}>
+            </li>`
+            )}
+          </ul>`;
+      }
+
+      createRoot(document.getElementById("root")).render(html`<${App} />`);
+    </script>
+  </body>
+</html>
