@@ -4,9 +4,13 @@ interface Context {
   count: number;
 }
 
-type Event = {
-  type: "COUNT";
-};
+type Event =
+  | {
+      type: "INCREMENT";
+    }
+  | {
+      type: "DECREMENT";
+    };
 
 export const counterMachine = createMachine<Context, Event>({
   id: "count",
@@ -18,15 +22,25 @@ export const counterMachine = createMachine<Context, Event>({
     waiting_for_count: {
       tags: ["settled"],
       on: {
-        COUNT: "counting_even",
+        INCREMENT: "incrementing",
+        DECREMENT: "decrementing",
       },
     },
-    counting_even: {
+    incrementing: {
       invoke: {
         src: () => wait(1000),
         onDone: {
           target: "waiting_for_count",
           actions: actions.assign({ count: (ctx) => (ctx as any).count + 1 }),
+        },
+      },
+    },
+    decrementing: {
+      invoke: {
+        src: () => wait(500),
+        onDone: {
+          target: "waiting_for_count",
+          actions: actions.assign({ count: (ctx) => (ctx as any).count - 1 }),
         },
       },
     },

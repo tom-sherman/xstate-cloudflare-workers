@@ -73,7 +73,8 @@
       function App() {
         return html` <h1>Async Counters</h1>
           <p>
-            Try spamming the "COUNT" event to see that the counter machine is
+            Try spamming the <code>INCREMENT</code> or${" "}
+            <code>DECREMENT</code> event to see that the counter machine is
             correctly queuing concurrent events.
           </p>
           <ul>
